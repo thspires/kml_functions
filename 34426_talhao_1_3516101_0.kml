@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+    <Document id="34">
+        <Style id="49">
+            <LineStyle id="50">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>5</width>
+            </LineStyle>
+            <PolyStyle id="51">
+                <color>00008000</color>
+                <colorMode>normal</colorMode>
+                <fill>1</fill>
+                <outline>1</outline>
+            </PolyStyle>
+        </Style>
+        <Placemark id="36">
+            <name>talhao_1</name>
+            <styleUrl>#49</styleUrl>
+            <ExtendedData>
+                <Data name="UF">
+                    <value>SP</value>
+                    <displayName>UF</displayName>
+                </Data>
+                <Data name="Nome Meso">
+                    <value>Assis</value>
+                    <displayName>Mesorregião</displayName>
+                </Data>
+                <Data name="Nome Micro">
+                    <value>Assis</value>
+                    <displayName>Microrregião</displayName>
+                </Data>
+                <Data name="Município">
+                    <value>Florínea</value>
+                    <displayName>Município</displayName>
+                </Data>
+                <Data name="Cód IBGE">
+                    <value>3516101</value>
+                    <displayName>Cód IBGE</displayName>
+                </Data>
+                <Data name="Area HA">
+                    <value>0</value>
+                    <displayName>Area HA</displayName>
+                </Data>
+                <Data name="Nome anterior">
+                    <value>GRANJA PAULISTA I</value>
+                    <displayName>Nome anterior</displayName>
+                </Data>
+            </ExtendedData>
+            <Polygon id="35">
+                <outerBoundaryIs>
+                    <LinearRing id="39">
+                        <coordinates>-50.62528881067582,-22.85737688697845,0.0 -50.62489195812633,-22.858048934434603,0.0 -50.625555555556,-22.858333333332986,0.0 -50.625555555556,-22.857500000000062,0.0 -50.62528881067582,-22.85737688697845,0.0</coordinates>
+                    </LinearRing>
+                </outerBoundaryIs>
+            </Polygon>
+        </Placemark>
+    </Document>
+</kml>
