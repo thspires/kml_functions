@@ -1,16 +1,5 @@
-# Objetivo: Juntar todos os KML das propostas em um KML unico para visualisar
-# Os grupos sao definidos no arquivo xls do Raio_D_analise
-# 1) listar todos os kmls que tem talhao no nome
-# 2) reter apenas a tag <Placemark> deles
-# 3) para cada <Placemark> adicioar <Data> que contem numero da proposta e grupo_raio_d
-rm(list=ls())
-setwd("//w00101pnas0/Shared/AgroBTG/shared/RAIO_D_analise/JDM")
-
-library(readr)
-
 gerar_kmlao <- function(grupo=fulano, corlinha=corlinha) {
   
-  grupo="JDM"
   nome_arquivo <- paste0("kml_raioD_", grupo, ".kml")
   
   if (file.exists(nome_arquivo)) stop("tem kml unificado already")
@@ -18,13 +7,13 @@ gerar_kmlao <- function(grupo=fulano, corlinha=corlinha) {
   # ler todos KMLs que tem "talhao" no nome
   kmls <- list.files(pattern=".kml")
   kmls <- kmls[grep("talhao", kmls)]
-  myfiles = lapply(kmls, read_file) # lapply pra deixar o Gabriel feliz
+  myfiles = lapply(kmls, readr::read_file) # lapply pra deixar o Gabriel feliz
   
   no_propostas <- gsub("_.*", "", kmls)
   
   kml_header <- '<?xml version="1.0" encoding="UTF-8"?>
   <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
-  <Document id="67">
+  <Document id="KML_RAIO_D">
   	<name>%s</name>
   	<open>1</open>'
   
@@ -37,21 +26,35 @@ gerar_kmlao <- function(grupo=fulano, corlinha=corlinha) {
     <LineStyle>
       <color>%2$s</color>
       <width>2</width>
+      <fill>1</fill>
     </LineStyle>
     <PolyStyle>
-      <fill>0<fill>
+      <color>7dff0000</color>
+      <fill>0</fill>
     </PolyStyle>
   </Style>'
   
-  cores_sortidas <- sample(rainbow(length(no_propostas)), length(no_propostas))
+  n_propostas <- length(unique(no_propostas))
   
-  # Criar um estilo com uma cor para cada proposta
-  styles <- rep(style_template, length(no_propostas))
-  styles <- sprintf(styles, no_propostas, cores_sortidas)
+  gerar_cores_propostas <- function() {
+    n_cores <- n_propostas
+    cores <- sample(rainbow(n_cores, alpha=1), n_cores)
+    cores <- tolower(gsub('#', '', cores))
+    return(cores)
+  }
+  cores <- gerar_cores_propostas()
+  
+  # cores iguais para a mesma proposta
+  cores <- rep(cores, table(no_propostas))
+  # A ordem das cores em KML nao eh rrggbbaa, eh aaggbbrr
+  cores <- stringi::stri_reverse(cores) # esse eh um jeito meio tosco de resolver o problema, 
+  # uma funcao para converter rrggbbaa -> aabbggrr precisa ser feita ou usar do pacote plotKML
+                         
+  # Criar estilos, nomes sao os numeros das propostas e tem uma cor para cada proposta
+  n_talhoes <- length(no_propostas)
+  styles <- rep(style_template, n_talhoes)
+  styles <- sprintf(styles, paste0('"', 1:n_talhoes, '"'), cores)
 
-  # Adicionar cor selecionada ao hearder
-  kml_header <- add_grupo_cor_linha(kml_header)
-  
   # funcao para pegar apenas o <Placemark> desses arquivos
   grab_placemark <- function(kml) {
     placemark <- sub(".*<Placemark", "", kml)
@@ -60,17 +63,17 @@ gerar_kmlao <- function(grupo=fulano, corlinha=corlinha) {
     return(placemark)
   }
   
-  # aplicar grab_placemark em toos os kmls
-  placemarks <- lapply(myfiles, grab_placemark) # tem um sorriso no Gabriel ao ver um lapply
-  
+  # aplicar grab_placemark em toos os kmls de talhoes
+  placemarks <- lapply(myfiles, grab_placemark) # tem um sorriso no Gabriel ao ver mais um lapply
+
   # modificar nome dos talhoes <name>talhao_1</name> para <name>PROPOSTAtalhao_1</name>
   for(i in seq_along(placemarks)){
-    placemarks[[i]] <- sub("(<name>)(t)", paste0("\\1", no_propostas[i], "\\2"), placemarks[[i]])
+    placemarks[[i]] <- sub("(<name>)(t)", paste0("\\1", "_", no_propostas[i], "\\2"), placemarks[[i]])
   }
   
-  # Adicionar novos campos "no_proposta" e "grupo_Raio_D" para cada kml
+  # Adicionar novos campos "no_proposta" e "grupo_Raio_D" para cada placemark
   xml_data <- '
-  <styleUrl>#failed0</styleUrl>
+  <styleUrl>#%s</styleUrl>
   <ExtendedData>
     <Data name="no_proposta">
       <displayName>no_proposta</displayName>
@@ -82,27 +85,24 @@ gerar_kmlao <- function(grupo=fulano, corlinha=corlinha) {
   </Data>'
 
   # sprintf adicionando no_proposta para cada <Placemark>
+  placemark_style_data <- list()
   for(i in 1:length(no_propostas)) {
-      sprintf(xml_data, no_propostas[i], grupo)
+      placemark_style_data[[i]] <- sprintf(xml_data, i, no_propostas[i], grupo)
   }
   
-  # vetor com o nomero das propostas (obtidos dos nomes dos kmls)
-  
-  
-  # aplicar funcao adicionar_prop_grupo
-  # for loop here
-  myfiles <- lapply(myfiles, adicionar_prop_grupo, 
-                    no_proposta=c(no_propostas), grupo=grupo)
+  for(i in seq_along(no_propostas)) {
+    placemarks[[i]] <- gsub("<style.*<ExtendedData>", placemark_style_data[[i]], placemarks[[i]]) 
+  }
   
   # funcao para escrever arquivo
   criar_kmlao <- function(filename) {
     sink(filename)
     cat(kml_header)
-    cat(unlist(myfiles))
+    cat(styles)
+    cat(unlist(placemarks))
     cat(footer)
     sink()
   }
-  
   criar_kmlao(nome_arquivo)
   print(paste("Arquivo criado:", nome_arquivo))
 }
