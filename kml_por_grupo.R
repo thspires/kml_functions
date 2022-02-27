@@ -1,4 +1,4 @@
-gerar_kmlao <- function(grupo=fulano, corlinha=corlinha) {
+gerar_kmlao <- function(grupo=fulano) {
   
   nome_arquivo <- paste0("kml_raioD_", grupo, ".kml")
   
