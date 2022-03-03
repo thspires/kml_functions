@@ -1,5 +1,7 @@
 # mapear nomes KML com nomes das figuras em um dataframe
 # Extrai figuras das paginas 4 ate o fim do PDF e move-las para subdiretorio "figuras"
+
+
 extrair_figuras_pdf <- function(pdf) {
   dados_pdf <- pdftools::pdf_data(pdf)
   n_pages <- length(dados_pdf)
@@ -17,7 +19,8 @@ extrair_figuras_pdf <- function(pdf) {
   file.remove(nomes_arq)
 }
 
-setwd("//w00101pnas0/Shared/AgroBTG/shared/RAIO_D_analise/Minozzo")
+#setwd("//w00101pnas0/Shared/AgroBTG/shared/RAIO_D_analise/Minozzo")
+setwd("/Users/tiagopires/Desktop/RAIO_QO_PARTA/Minozzo")
 pdfs <- list.files(pattern=".pdf")
 sapply(pdfs, extrair_figuras_pdf)
 
@@ -54,10 +57,10 @@ template <- '<Data name="fig">
  </Data>'
 #
 # repetir template para cada arquivo kml de talhao
-mapeamento$figfiles[which(mapeamento$kmlfile==mapeamento$kmlfile[1])]
+meumapa$figfiles[which(meumapa$kmlfile==meumapa$kmlfile[1])]
 # para cada kmlfile
 # para cada figura
-n_figs_each_kml <- table(mapeamento$kmlfile)
+n_figs_each_kml <- table(meumapa$kmlfile)
 
 mapa2 <- data.frame(n_figs_each_kml)
 names(mapa2) <- c("kmlfile", "n")
@@ -69,7 +72,7 @@ for(i in 1:nrow(mapa2)) {
 
 # para cadata texto_add, fazer sprintf com nomes dos arquivos
 for(i in 1:nrow(mapa2)){
-  preenchimento <- mapeamento$figfiles[which(mapeamento$kmlfile==mapa2$kmlfile[i])]
+  preenchimento <- meumapa$figfiles[which(meumapa$kmlfile==mapa2$kmlfile[i])]
   mapa2$texto_add[i] <- do.call(sprintf, c(fmt = mapa2$texto_add[i], as.list(preenchimento)))
 }
 
@@ -77,8 +80,17 @@ for(i in 1:nrow(mapa2)){
 mapa2$texto_add <- paste0("<ExtendedData>", mapa2$texto_add)
 
 # ler KML e substituir 
-kml <- readr::read_file(kmls[1])
-kml <- gsub("<ExtendedData>", mapa2$texto_add[1], kml)
-sink("test.kml")
-cat(kml)
-sink()
+kmls <- list.files(pattern=".kml")
+mapa2$kmls <- kmls[grep("talhao", kmls)]
+
+# Gerar novos KMLs de cada talhao
+novos_nomes <- gsub("_[0-9]{4}.*", "", mapa2$kmlfile)
+novos_nomes <- paste0(novos_nomes,"_figref.kml")
+
+for(i in 1:nrow(mapa2)) {
+  kml <- readr::read_file(kmls[i])
+  kml_com_figrefs <- gsub("<ExtendedData>", mapa2$texto_add[i], kml)
+  sink(novos_nomes[i])
+    cat(kml_com_figrefs)
+  sink()
+}
