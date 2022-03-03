@@ -1,0 +1,15 @@
+rm(list=ls())
+# Carregar funcoes
+#  extrair_figuras_pdf()
+#  mapear_kml_figuras()
+#  gerar_kml_figrefs()
+#  gerar_kmlao()
+source("~/Desktop/raioD_helper_functions.r")
+
+setwd("/Users/tiagopires/Desktop/RAIO_QO_PARTA/Minozzo")
+pdfs <- list.files(pattern=".pdf")
+sapply(pdfs, extrair_figuras_pdf)
+# MAPEAR kmls e figuras geradas (meumapa)
+meumapa <- mapear_kml_figuras()
+gerar_kml_figrefs()
+gerar_kmlao(grupo="Corretor_amigo")
