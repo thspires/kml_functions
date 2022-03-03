@@ -6,7 +6,7 @@ gerar_kmlao <- function(grupo=fulano) {
   
   # ler todos KMLs que tem "talhao" no nome
   kmls <- list.files(pattern=".kml")
-  kmls <- kmls[grep("talhao", kmls)]
+  kmls <- kmls[grep("figref", kmls)]
   myfiles = lapply(kmls, readr::read_file) # lapply pra deixar o Gabriel feliz
   
   no_propostas <- gsub("_.*", "", kmls)
